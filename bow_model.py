@@ -6,7 +6,23 @@ nltk.download('punkt')
 nltk.download('wordnet')
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+# Fitting Naive Bayes classifier to the Training set
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+import xgboost
+from sklearn import svm, tree
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score,train_test_split
 
+from sklearn.feature_extraction.text import CountVectorizer
+
+import tensorflow as tf
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing import sequence
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import Embedding,Input,LSTM,Dense,Bidirectional,Dropout, Activation
+from keras.models import Model
+from tensorflow.keras.models import Sequential
 
 def testFilter(df):
     for index, row in df.iterrows():
@@ -41,44 +57,68 @@ if __name__ == '__main__':
     # nna_report = extract_word(nna_report)  # 1432 left with words
 
     # Try applying simple bag of model directly
-    from sklearn.feature_extraction.text import CountVectorizer
+
     cv = CountVectorizer()
     X = cv.fit_transform(nna_report['Description  ']).toarray()
     y = nna_report['Flag'].map({'Yes': 1, 'No' : 0}).values
 
     # Splitting the dataset into the Training set and Test set
-    from sklearn.model_selection import train_test_split
+
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=True)
 
-    # Fitting Naive Bayes classifier to the Training set
-    from sklearn.naive_bayes import MultinomialNB
 
-    classifier = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
-    classifier.fit(X_train, y_train)
 
-    # Predicting the Test set results
-    y_pred = classifier.predict(X_test)
 
-    # Making the Confusion Matrix
-    from sklearn.metrics import confusion_matrix
-    cm = confusion_matrix(y_test, y_pred)
-    print(cm)
-    '''
-    Confusion Matrix
-    array([[863,  11],
-           [  1, 264]])
-    '''
+    # # Making the Confusion Matrix
+    # from sklearn.metrics import confusion_matrix
+    # cm = confusion_matrix(y_test, y_pred)
+    # print(cm)
+    # '''
+    # Confusion Matrix
+    # array([[863,  11],
+    #        [  1, 264]])
+    # '''
     # this function computes subset accuracy
-    from sklearn.metrics import accuracy_score
 
-    print(accuracy_score(y_test, y_pred))  # 0.9894644424934153
-    print(accuracy_score(y_test, y_pred, normalize=False))  # 1129 out of 1139
+    models = [RandomForestClassifier(),
+              GaussianNB(),
+              AdaBoostClassifier(),
+              xgboost.XGBClassifier(),
+              svm.SVC(),
+              tree.DecisionTreeClassifier(),
+              KNeighborsClassifier(),
+              MultinomialNB()]
 
-    # Applying k-Fold Cross Validation
-    from sklearn.model_selection import cross_val_score
+    model_names = ['Random Forest Classifier',
+                   'Gaussian Naive Bayes Classifier',
+                   'Adaboost Classifier',
+                   'XGBoost Classifier',
+                   'Support Vector Classifier',
+                   'Decision Tree Classifier',
+                   'K Nearest Neighbour Classifier',
+                   'Multinomial Naive Bayes Classifier']
+    accuracy_mean = []
+    accuracy_std = []
+    d = {}
+    for model in range(len(models)):
+        clf = models[model]
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        accuracies = cross_val_score(estimator=clf, X=X_train, y=y_train,
+                                     cv=10)
+        mean = accuracies.mean()
+        std = accuracies.std()
+        accuracy_mean.append(mean)
+        accuracy_std.append(std)
+    d = {'Modelling Name': model_names, 'Accuracy_mean': accuracy_mean, 'Accuracy_std': accuracy_std}
+    accuracy_frame = pd.DataFrame.from_dict(d, orient='index').transpose()
+    print(accuracy_frame)
 
-    accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train,
-                                 cv=10)
-    print(accuracies.mean())
-    print(accuracies.std())
+
+
+
+
+
+
+
