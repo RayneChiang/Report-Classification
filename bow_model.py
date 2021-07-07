@@ -9,7 +9,6 @@ from nltk.stem import WordNetLemmatizer
 # Fitting Naive Bayes classifier to the Training set
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-import xgboost
 from sklearn import svm, tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score,train_test_split
@@ -50,7 +49,7 @@ def extract_word(df):
 
 if __name__ == '__main__':
     dir_name = os.path.dirname(__file__)
-    all_report = pd.read_excel(dir_name + '/input/Stop App Reports no password.xls', sheet_name='All Reports - 4022')
+    all_report = pd.read_excel(dir_name + '/input/Stop App Reports no password.xlsx', sheet_name='All Reports - 4022')
     nna_report = all_report.dropna().copy()  # 2978 records left, use copy leaves the origin data unchanged
     nna_report['Description  '] = nna_report['Description  '].astype(str)
     nna_report = testFilter(nna_report)  # 1459 left
