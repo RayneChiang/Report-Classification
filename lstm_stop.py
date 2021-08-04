@@ -17,16 +17,14 @@ from tensorflow import keras
 from keras.preprocessing.text import Tokenizer
 from keras.callbacks import EarlyStopping
 from keras.preprocessing import sequence
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.layers import Embedding, Input, LSTM, Dense, Bidirectional, Dropout, Activation
-from keras.models import Model
+from tensorflow.keras.layers import Embedding, LSTM, Dense
 from tensorflow.keras.models import Sequential
-from tensorflow.keras import layers
-from matplotlib import pyplot as plt
-from tkinter.ttk import *
+
 import timeit
 
-
+'''
+Filter all the records for Test
+'''
 def testFilter(df):
     for index, row in df.iterrows():
         des = row['Description  ']
@@ -36,7 +34,9 @@ def testFilter(df):
     df = df.drop_duplicates()
     return df
 
-
+'''
+Extract words with Lemmatization
+'''
 def extract_word(df):
     lemmatizer = WordNetLemmatizer()
     word_list = []
@@ -52,7 +52,11 @@ def extract_word(df):
     df['Words'] = word_list
     return df
 
-
+'''
+Padding text to sequence
+size: vocab_size
+len: max_len
+'''
 def text_to_sequence(df, size, len):
     # Tokenize the mails
     tok = Tokenizer(num_words=size)
@@ -67,7 +71,9 @@ def text_to_sequence(df, size, len):
     X = sequence.pad_sequences(sequences, maxlen=len)
     return X, y, nna_report['Words']
 
-
+'''
+Train process
+'''
 def train():
     start = timeit.default_timer()
     dir_name = os.path.dirname(__file__)
@@ -82,8 +88,6 @@ def train():
     X, y, df = text_to_sequence(nna_report[:1200], vocab_size, max_len)
     df.to_csv(dir_name + '/test/training_data.csv')
 
-    vocab_size = 10000
-    max_len = 250
     checkpoint_filepath = dir_name + '/content/tmp/checkpoint'
     model = Sequential()
     model.add(Embedding(vocab_size, 200, input_length=max_len))
@@ -108,7 +112,9 @@ def train():
     label.configure(text="Training Finished in " + Used_time + " seconds")
     print('Time: ', stop - start)
 
-
+'''
+Generate one test case for display
+'''
 def generate_test_dataset():
     T.delete(1.0, END)
     dir_name = os.path.dirname(__file__)
@@ -120,7 +126,9 @@ def generate_test_dataset():
     str_test.set(select_records)
     label.configure(text="Ready for test")
 
-
+'''
+Generate wordlist from test case
+'''
 def generate_wordlist(str):
     lemmatizer = WordNetLemmatizer()
     str = str.lower()
@@ -128,7 +136,9 @@ def generate_wordlist(str):
     words = [lemmatizer.lemmatize(word) for word in tokens if word.isalpha()]  # Lemmatization
     return words
 
-
+'''
+Test function for display result
+'''
 def test():
     dir_name = os.path.dirname(__file__)
     str = str_test.get()
